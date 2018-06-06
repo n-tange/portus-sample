@@ -1,68 +1,61 @@
-# Portus on Docker compose
+# PortusでプライベートDockerレジストリを構築する手順
 
-This example is two-folded, as it contains the same example deployed in two
-ways:
+PortusとはDockerレジストリに認証機構とWebUIを付与するRailsアプリケーションです。  
+オンプレミスでDockerレジストリを運用する際に、有効なソリューションとなります。
+当リポジトリはこのPortusを構築するテンプレートと手順を提供します。
 
-- A production-ready setup where all communication is encrypted.
-- A version which doesn't use encryption for simplicity.
+## Portus
+* 公式 : http://port.us.org/
+* Github : https://github.com/SUSE/Portus
 
-As explained in the [README file](../README.md) above, this example uses
-the
-[official Portus image](https://github.com/openSUSE/docker-containers/tree/master/derived_images/portus),
-so it has nothing to do with the docker-compose setup used for development in
-the root directory.
+## 参考サイト
+* http://blog.geeko.jp/syuta-hashimoto/1787
 
-## The hostname
+## 概要
+* この手順で構築するPortusのバージョンは 2.3 です。
+* 公式のGithubから、テンプレートをダウンロードし設定を変更して構築します。
 
-This example needs the hostname in multiple places. All this has been delegated
-into Compose's support of the `.env` file. For this reason, you will need to
-change hostname set in this file, and also in the `nginx/nginx.conf` file.
+## 動作環境
+* CentOS7+
+* Docker 18+
+* git
 
-## Certificates
+## 手順概要
+* テンプレートのダウンロード
+* Firewallの設定
+* 設定ファイルを編集（マシンFQDNを設定）
+* 自己証明書の作成、および、インストール
+* Potusの起動
 
-This example is set up in a way so you can use self-signed certificates. Of
-course this is not something you would want to do in production, but this way we
-ease up the task for those who are curious to try it out.
+## 構築手順
+#### テンプレートのダウンロード
+当リポジトリにすでにテンプレートがありますので、それをそのまま使用すれば、Portus v2.3の構築が可能です。  
+別途テンプレートをダウンロードする場合は、公式のGithubからPortusのリポジトリをクローンします。  
+クローンする際に、オプションを指定してバージョン2.3のみを取得します。
+* --depth 1 で最新版のみを取得し、データ量を減らす
+* --b v2.3 でv2.3ブランチを指定
 
-## The setup
+```bash
+$ git clone --depth 1 -b v2.3 https://github.com/SUSE/Portus
+```
 
-### Secure example
+クローンしたリポジトリPortus配下のディレクトリ[examples/compose]がテンプレートのディレクトリになります。  
+このcomposeディレクトリをコピーし、別途配置、命名してください。composeディレクトリが実行コンテキストになります。
 
-The secure example uses an NGinx container that proxies between the Portus and
-the Registry containers. Communication is always encrypted, but note that this
-is not strictly necessary. Because of this proxy setup, both Portus and the
-registry end up using the same hostname. Practically speaking:
-
-- When setting up the registry for the first time in Portus, you have to check
-  the "Use SSL" box and enter the hostname without specifying any ports.
-- From the CLI, docker images should be prefixed with the hostname, but without
-  specifying any ports (e.g. "my.hostname.com/opensuse/amd64:latest")
-
-### Insecure example
-
-The other example is as minimal as possible. Because of this, there's no NGinx
-proxy and the Portus and the Registry containers are bound to their respective
-ports. Moreover, SSL has not been configured on this setup. Because of this:
-
-- When setting up the registry for the first time in Portus, you do **not** have
-  to check the "Use SSL" box. Moreover, the hostname has to end with the 5000 port
-  (e.g. "my.hostname.com:5000").
-- From the CLI, docker images should be prefixed with the hostname and the 5000
-  port (e.g. "my.hostname.com:5000/opensuse/amd64:latest")
-
-### Serving static assets
-
-The static assets can be served in two ways:
-
-- With NGinx: this is the case of the *secure* example, in which we share the
-  `public` directory between the NGinx and the Portus containers. This way, all
-  assets are served directly and faster from the NGinx container.
-- With Rails by setting the `RAILS_SERVE_STATIC_FILES` environment variable to
-  true. This is done in the *insecure* example, and it's recommended in
-  scenarios where you don't want an extra container for managing your static assets.
-
-## Acknowledgements
-
-Many thanks to [@Djelibeybi](https://github.com/Djelibeybi), since we
-borrowed a lot of the NGinx configuration from
-[his repository](https://github.com/Djelibeybi/Portus-On-OracleLinux7).
+```
+.
+|-- config.yml #Portusの設定ファイル
+|-- docker-compose.insecure.yml
+|-- docker-compose.yml
+|-- .env
+|-- nginx
+|   `-- nginx.conf
+|-- README.md
+|-- registry
+|   |-- config.yml
+|   `-- init
+`-- secrets
+    |-- portus.crt
+    |-- portus.key
+    `-- san_openssl.cnf
+```

@@ -2,7 +2,7 @@ version: "2"
 
 services:
   portus:
-    image: opensuse/portus:head
+    image: opensuse/portus:2.3
     environment:
       - PORTUS_MACHINE_FQDN_VALUE=${MACHINE_FQDN}
 
@@ -32,9 +32,10 @@ services:
     volumes:
       - ./secrets:/certificates:ro
       - static:/srv/Portus/public
+      - ./config.yml:/srv/Portus/config/config.yml
 
   background:
-    image: opensuse/portus:head
+    image: opensuse/portus:2.3
     depends_on:
       - portus
       - db

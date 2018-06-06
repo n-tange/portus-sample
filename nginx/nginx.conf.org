@@ -44,8 +44,7 @@ http {
 
   server {
     listen 443 ssl http2;
-    #server_name 172.17.0.1;
-    server_name 192.168.33.13;
+    server_name 172.17.0.1;
     root /srv/Portus/public;
 
     ##

@@ -220,7 +220,7 @@ registry:
 
 # The FQDN of the machine where Portus is being deployed.
 machine_fqdn:
-  value: "portus.test.lan"
+  value: "192.168.33.13"
 
 # Allow users to have different display names on the web site. This will
 # **not** be the username used by `docker login`. It defaults to false because
