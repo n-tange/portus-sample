@@ -24,7 +24,8 @@ PortusとはDockerレジストリに認証機構とWebUIを付与するRailsア�
 * テンプレートのダウンロード
 * 設定ファイルを編集（マシンFQDNを設定）
 * 自己証明書の作成、および、インストール
-* Potusの起動
+* Portusの起動
+* Portusへのアクセス
 
 ## 構築手順
 #### テンプレートのダウンロード
@@ -366,8 +367,56 @@ Portusを構築には、SSL証明書が必須となります。正規のSSL証�
   ```  
 
 ### Portusの起動
-実行コンテキストで、以下のコマンドを実施し、Portusを起動します。
-```
-$ docker-compose up -d
-```
-起動後、https://{MACHINE_FQDN} にアクセスすると初回アクセス画面が表示されます。
+* Portusの起動
+
+  実行コンテキストで、以下のコマンドを実施し、Portusを起動します。
+  ```
+  $ docker-compose up -d
+  ```
+  起動後、https://{MACHINE_FQDN} にアクセスすると初回アクセス画面が表示されます。
+
+* Portusの初期設定
+
+  Portusの初回アクセス画面では、adminユーザーの作成が求められます。画面の入力要求にしたがって情報を入力し、adminユーザーを作成して下さい。  
+  作成後、registryの設定画面に遷移するので、設定を行います。
+  * Name には任意の名前を入力して下さい。
+  * Hostnameには、.env で指定した{MACHINE_FQDN}を入力して下さい。
+  * Use SSL にチェックを入れてください。
+  * 入力内容が妥当であれば Create ボタンが有効になるので、ボタンを押してregistryを作成して下さい。
+
+
+* Portusのユーザー等作成
+
+  adminユーザーでログインし、AdminメニューのUsersをクリック、Create new user からユーザーを作成可能です。  
+  Namespacesメニューの Create new namespace からNamespaceを作成可能です。
+
+### Portusへのアクセス
+作成した自己証明書がインストールされているクライアント環境から、Portusへの操作を行います。
+* Portusへのログイン
+  MACHINE_FQDNが 192.168.33.13 として、以下のようにログインします。  
+  ユーザー名とパスワードを聞かれるので、Portusの起動で作成したユーザーの情報でログインします。
+  ```
+  $ docker login 192.168.33.13
+  ```
+
+* Portusへのpush用tag付け
+
+  このあたりの操作はDocker Hubと同じですが、Portusへpushするためのタグ付けルールは以下のようになります。
+  ```
+  Portusサーバ/Namespace/リポジトリ:バージョン
+  ```
+  例として、既存イメージ registry:2.6 がある場合、以下のようにタグ付けします。
+  ```
+  $ docker tag registry:2.6 192.168.33.13/narita/registry:pushtest
+  ```
+* Portusへのpush、pull
+
+  タグ付けが完了したらpushが可能です。例として以下のように実施します。
+  ```
+  $ docker push 192.168.33.13/narita/registry:pushtest
+  ```
+  pullも実施可能です。
+  ```
+  $ docker pull 192.168.33.13/narita/registry:pushtest
+  ```
+  push、pullの実行履歴をPortusサイトにログインして確認しましょう。
